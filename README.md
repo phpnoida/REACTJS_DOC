@@ -132,7 +132,7 @@ export default FormikControl;
 
 - step3 Input.js
 Note :Field component from formik automatically hooks in onChange,onBlur
-and value
+and value so no need to pass these events and value attribute
 ErrorMessage programtically renders errors if any
 ```
 import React from 'react';
@@ -166,4 +166,172 @@ const TextError=(props)=>{
 
 }
 export default TextError;
+```
+
+### Storing values in Object needed for API 
+
+- Step 1 in FormikContainer.js
+
+```
+const initialValues={
+    social:{
+        fb:'',
+        tw:'',
+        insta:''
+    }
+}
+
+const validationSchema = Yup.object({
+    social:Yup.object({
+        fb:Yup.string().url('Invalid url'),
+        tw:Yup.string().url('Invalid Twitter url')
+    })
+})
+
+<FormikControl
+  control="input"
+  label="Facebook"
+  <!-- the most impt is name -->
+  name="social.fb"
+
+/>
+<FormikControl
+  control="input"
+  label="Twitter"
+  <!-- ultra cautious in name -->
+  name="social.tw"
+
+/>
+<FormikControl
+  control="input"
+  label="Instagram"
+  <!-- name not social ,it will be social.insta -->
+  name="social.insta"
+
+/>
+<!-- rest all process same  -->
+
+
+```
+
+### Textarea
+
+- Step1 FormikContainer.js
+
+```
+const initialValues={
+    comments:''
+}
+
+const validationSchema = Yup.object({
+    comments:Yup.string().min('10','Minimum 100 characters').max('200','')
+})
+
+
+<FormikControl
+  control="textarea"
+  label="Leave Your Comments"
+  name="comments"
+
+/>
+
+
+```
+
+- step 3 make a component Textarea.js
+
+```
+import { ErrorMessage, Field } from "formik";
+import TextError from "./TextError";
+
+const Textarea = (props) => {
+  const { label, name, ...rest } = props;
+  return (
+    <div className="form-control">
+      <label htmlFor={name}>{label}</label>
+      <!-- as props in Field impt by default as='text' in raw it is type -->
+      <Field as="textarea" id={name} name={name} {...rest} />
+      <ErrorMessage name={name} component={TextError} />
+    </div>
+  );
+};
+
+export default Textarea;
+
+```
+
+### Dropdowns 
+
+- step1 FormikContainer.js
+<!-- you can get these from API -->
+
+```
+const jobOptions = [
+    {
+      key: "Select an option",
+      value: "",
+    },
+    {
+      key: "Permanent",
+      value: "per",
+    },
+    {
+      key: "Contract",
+      value: "contr",
+    },
+    {
+      key: "Consulting",
+      value: "cons",
+    },
+    {
+      key: "Internship",
+      value: "intern",
+    },
+  ];
+
+const initialValues={
+    jobType:''
+}
+
+const validationSchema = Yup.object({
+    jobType:Yup.string().required('Please select Job Options')
+})
+
+<FormikControl
+    control="select"
+    label="Select Job Type"
+    name="jobType"
+    options={jobOptions}
+/>
+
+```
+- step3 create a component Select.jsx
+
+```
+import { ErrorMessage, Field } from "formik";
+import TextError from "./TextError";
+
+const Select =(props)=>{
+    const {label,name,options,...rest}=props;
+    return (
+        <div className="form-row">
+            <label htmlFor={name}>{label}</label>
+            <!-- as props value =select in Field -->
+            <Field as='select' id={name} name={name} {...rest}>
+            <!-- we will loop the options props to create listings dynamically -->
+                {
+                    options.map((option)=>{
+                        return (
+                            <option key={option.value} value={option.value}>{option.key}</option>
+                        )
+                    })
+                }
+            </Field>
+            <ErrorMessage name={name} component={TextError}/>
+
+        </div>
+    )
+
+}
+export default Select;
 ```
