@@ -335,3 +335,183 @@ const Select =(props)=>{
 }
 export default Select;
 ```
+
+### Radio buttons 
+- these are slightly different we will use render props pattern
+- step1 FormikContainer.js
+
+```
+const radioOptions = [
+    {
+      key: "Option 1",
+      value: "roption1",
+    },
+    {
+      key: "Option 2",
+      value: "roption2",
+    },
+    {
+      key: "Option 3",
+      value: "roption3",
+    },
+  ];
+const initialState={
+    gender:''
+}
+
+const validationSchema = Yup.object({
+    gender:Yup.string().required('Gender is must')
+})
+
+<FormikControl
+    control="radio"
+    label="Slect Your Gender"
+    name="gender"
+    options={radioOptions}
+/>
+
+```
+
+- step2 make a component Radio.js
+- render props pattern will be used
+- we pass function as children to Field so Field now will have opng and closing tag
+- mainly arrow function
+- this arrow must return jsx 
+- but if we use <input type='radio'> then formik will not be hooked 
+- in order to let formik have control , we get props in arrow method
+- u can console.log(props) which has 3 things field , form ,meta
+- field has name,onBlur,onChange and value properties inside it
+- meta has error,touched , value
+- form which has bunch of helper methods for entire form
+- field and meta are on individual field level basis while form is for entire form 
+- in order to hook input element with formik we need to spread field props
+- i.e <input {...field}/> is must , now value,onChnage and onBlur is hooked
+- for error at individual field level we can do like this also
+- {meta.touched && meta.error ?<div>{meta.error}</div>:null}
+
+
+```
+import { ErrorMessage, Field } from "formik";
+import React from "react";
+import TextError from "./TextError";
+
+const Radio = (props) => {
+  const { label, name, options, ...rest } = props;
+  // render props pattern needs here
+  //opening and closing tag
+  //will have arrow function as children
+  // that arrow must return some jsx
+  return (
+    <div className="form-row">
+      <label>{label}</label>
+      <Field name={name} {...rest}>
+        {(props) => {
+          // must return jsx
+          const { field } = props;
+          // iterate over options array
+          return options.map((option) => {
+            // must return label and input
+            return (
+              <React.Fragment key={option.key}>
+                {/* value used again to overite from field props value */}
+                <input
+                  type="radio"
+                  id={option.value}
+                  {...field}
+                  <!-- impt to overide value after spreading field -->
+                  value={option.value}
+                  checked={field.value === option.value}
+                />
+                <label htmlFor={option.value}>{option.key}</label>
+              </React.Fragment>
+            );
+          });
+        }}
+      </Field>
+      <ErrorMessage name={name} component={TextError} />
+    </div>
+  );
+};
+export default Radio;
+
+
+```
+
+### checkbox 
+- flow is same as radio button
+- step1 FormikContainer.js
+
+```
+const checkboxOptions = [
+    {
+      key: "Option 1",
+      value: "coption1",
+    },
+    {
+      key: "Option 2",
+      value: "coption2",
+    },
+    {
+      key: "Option 3",
+      value: "coption3",
+    },
+  ];
+
+const initialState={
+    <!-- impt must be of array type -->
+    hobbies :[]
+}
+
+const validationSchema = Yup.object({
+    hobbies:Yup.array().required('Pls select 1 hobby')
+})
+
+<FormikControl
+    control="checkbox"
+    label="Please select hobbies"
+    name="hobbies"
+    options={checkboxOptions}
+/>
+```
+
+- step2 create component Checkbox.js
+
+```
+import { ErrorMessage, Field } from "formik";
+import React from "react";
+import TextError from "./TextError";
+
+const Checkbox = (props) => {
+  const { label, name, options, ...rest } = props;
+  return (
+    <div className="form-row">
+      <label>{label}</label>
+      <Field name={name} {...rest}>
+        {(props) => {
+          const { field } = props;
+          // iterate over options array
+          return options.map((option) => {
+            // must return label and input
+            return (
+              <React.Fragment key={option.key}>
+                {/* value used again to overite from field props value */}
+                <input
+                  type="checkbox"
+                  id={option.value}
+                  {...field}
+                  value={option.value}
+                  checked={field.value.includes(option.value)}
+                />
+                <label htmlFor={option.value}>{option.key}</label>
+              </React.Fragment>
+            );
+          });
+        }}
+      </Field>
+      <ErrorMessage name={name} component={TextError} />
+    </div>
+  );
+};
+export default Checkbox;
+
+```
