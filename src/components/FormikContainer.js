@@ -82,20 +82,21 @@ const FormikContainer = () => {
     radioOption: Yup.string().required("Please Select Options"),
     checkOption: Yup.array().required("Please Select Options"),
     birthDate: Yup.date().required("Date is must").nullable(),
-    donations:Yup.array(Yup.object({
-      institution:Yup.string().required('Insti Name must'),
-      percentage:Yup.number().min(1,'perce must be more than 1').max(100,'perce must be less than 100')
-
-    })),
-    file: Yup.mixed()
-      .nullable()
-      .required("Photo is must")
-      // .test("FILE_FORMAT", "Unsported file format", (value) => {
-      //    !value || (value && SUPPORTED_FORMATS.includes(value.type));
-      // })
-      // .test("FILE_SIZE", "Uploaded file size too big", (value) => {
-      //   return !value || (value && value.size <= 1024 * 1024);
-      // }),
+    donations: Yup.array(
+      Yup.object({
+        institution: Yup.string().required("Insti Name must"),
+        percentage: Yup.number()
+          .min(1, "perce must be more than 1")
+          .max(100, "perce must be less than 100"),
+      })
+    ),
+    file: Yup.mixed().nullable().required("Photo is must")
+    .test("FILE_FORMAT", "Unsported file format", (value) => {
+       return !value || (value && SUPPORTED_FORMATS.includes(value.type));
+    })
+    .test("FILE_SIZE", "Uploaded file size too big", (value) => {
+      return !value || (value && value.size <= 1024 * 1024);
+    }),
   });
   const onSubmit = (values, onSubmitProps) => {
     console.log("form submited", values);
@@ -134,7 +135,8 @@ const FormikContainer = () => {
                 formik.setFieldValue("file", event.target.files[0]);
               }}
             />
-            {formik.values.file && <ImagePreview file={formik.values.file} />}
+            {formik.errors.file && <p>{formik.errors.file}</p>}
+            {!formik.errors.file && formik.values.file && <ImagePreview file={formik.values.file} />}
             <button
               type="button"
               onClick={() => {
@@ -143,7 +145,7 @@ const FormikContainer = () => {
             >
               Upload Photo
             </button>
-            <ErrorMessage name="file" component={TextError} />
+          
 
             <FormikControl
               control="input"
@@ -196,9 +198,15 @@ const FormikContainer = () => {
                         return (
                           <div key={index}>
                             <Field name={`donations[${index}].institution`} />
-                            <ErrorMessage name={`donations[${index}].institution`} component={TextError}/>
+                            <ErrorMessage
+                              name={`donations[${index}].institution`}
+                              component={TextError}
+                            />
                             <Field name={`donations[${index}].percentage`} />
-                            <ErrorMessage name={`donations[${index}].percentage`} component={TextError}/>
+                            <ErrorMessage
+                              name={`donations[${index}].percentage`}
+                              component={TextError}
+                            />
                             {index > 0 && (
                               <button
                                 type="button"
@@ -218,14 +226,12 @@ const FormikContainer = () => {
                             >
                               Add More
                             </button>
-                  
                           </div>
                         );
                       })}
                     </div>
                   );
                 }}
-          
               </FieldArray>
             </div>
             <button

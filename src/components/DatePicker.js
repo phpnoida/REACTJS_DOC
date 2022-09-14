@@ -22,7 +22,7 @@ const DatePicker = (props) => {
               onChange={(val) => {
                 setFieldValue(name, val);
               }}
-              dateFormat='dd/MM/yyyy'
+              dateFormat="dd/MM/yyyy"
               minDate={new Date()}
               isClearable
               showYearDropdown
@@ -32,9 +32,8 @@ const DatePicker = (props) => {
           );
         }}
       </Field>
-      <ErrorMessage name={name} component={TextError}/>
+      <ErrorMessage name={name} component={TextError} />
     </div>
-
   );
 };
 export default DatePicker;

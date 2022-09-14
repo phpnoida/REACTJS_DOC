@@ -131,9 +131,10 @@ export default FormikControl;
 ```
 
 - step3 Input.js
-Note :Field component from formik automatically hooks in onChange,onBlur
-and value so no need to pass these events and value attribute
-ErrorMessage programtically renders errors if any
+  Note :Field component from formik automatically hooks in onChange,onBlur
+  and value so no need to pass these events and value attribute
+  ErrorMessage programtically renders errors if any
+
 ```
 import React from 'react';
 import { Field,ErrorMessage} from 'formik';
@@ -168,7 +169,7 @@ const TextError=(props)=>{
 export default TextError;
 ```
 
-### Storing values in Object needed for API 
+### Storing values in Object needed for API
 
 - Step 1 in FormikContainer.js
 
@@ -260,7 +261,7 @@ export default Textarea;
 
 ```
 
-### Dropdowns 
+### Dropdowns
 
 - step1 FormikContainer.js
 <!-- you can get these from API -->
@@ -305,6 +306,7 @@ const validationSchema = Yup.object({
 />
 
 ```
+
 - step3 create a component Select.jsx
 
 ```
@@ -336,7 +338,8 @@ const Select =(props)=>{
 export default Select;
 ```
 
-### Radio buttons 
+### Radio buttons
+
 - these are slightly different we will use render props pattern
 - step1 FormikContainer.js
 
@@ -376,19 +379,18 @@ const validationSchema = Yup.object({
 - render props pattern will be used
 - we pass function as children to Field so Field now will have opng and closing tag
 - mainly arrow function
-- this arrow must return jsx 
-- but if we use <input type='radio'> then formik will not be hooked 
+- this arrow must return jsx
+- but if we use <input type='radio'> then formik will not be hooked
 - in order to let formik have control , we get props in arrow method
 - u can console.log(props) which has 3 things field , form ,meta
 - field has name,onBlur,onChange and value properties inside it
 - meta has error,touched , value
 - form which has bunch of helper methods for entire form
-- field and meta are on individual field level basis while form is for entire form 
+- field and meta are on individual field level basis while form is for entire form
 - in order to hook input element with formik we need to spread field props
 - i.e <input {...field}/> is must , now value,onChnage and onBlur is hooked
 - for error at individual field level we can do like this also
 - {meta.touched && meta.error ?<div>{meta.error}</div>:null}
-
 
 ```
 import { ErrorMessage, Field } from "formik";
@@ -437,7 +439,8 @@ export default Radio;
 
 ```
 
-### checkbox 
+### checkbox
+
 - flow is same as radio button
 - step1 FormikContainer.js
 
@@ -513,5 +516,209 @@ const Checkbox = (props) => {
   );
 };
 export default Checkbox;
+
+```
+
+### Date Calendar
+
+- step1 npm i react-datepicker
+- step2 go to FormikContainer.js
+
+```
+const initialState={
+    birthDate:null
+}
+const validationSchema=Yup.object({
+    birthDate:Yup.date().nullable()
+})
+
+<FormikControl
+    control="date"
+    name="birthDate"
+    label="Please Select BirthDay"
+    />
+```
+
+- step3 create component DatePicker.js
+
+```
+import { ErrorMessage, Field } from "formik";
+import DateView from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import TextError from "./TextError";
+
+const DatePicker = (props) => {
+  const { label, name, ...rest } = props;
+  return (
+    <div className="form-row">
+      <label htmlFor={name}>{label}</label>
+      <Field name={name}>
+        {(props) => {
+          const { form, field } = props;
+          const { setFieldValue } = form;
+          const { value } = field;
+          return (
+            <DateView
+              id={name}
+              {...field}
+              {...rest}
+              selected={value}
+              onChange={(val) => {
+                setFieldValue(name, val);
+              }}
+              dateFormat='dd/MM/yyyy'
+              minDate={new Date()}
+              isClearable
+              showYearDropdown
+              showMonthDropdown
+              scrollableMonthYearDropdown
+            />
+          );
+        }}
+      </Field>
+      <ErrorMessage name={name} component={TextError}/>
+    </div>
+
+  );
+};
+export default DatePicker;
+
+
+```
+
+### FieldArray for array of objects
+
+- step1 FormikContainer.js
+
+```
+const initialValues={
+  <!-- must be of array -->
+  donations: [{ institution: "", percentage: 0 }],
+}
+
+const validationSchema =Yup.object({
+  donations:Yup.array(Yup.object({
+      institution:Yup.string().required('Insti Name must'),
+      percentage:Yup.number().min(1,'perce must be more than 1').max(100,'perce must be less than 100')
+
+    }))
+})
+ <FieldArray name="donations">
+      {(props) => {
+                  const { push, remove, form } = props;
+                  const { values } = form;
+                  const { donations } = values;
+
+                  return (
+                    <div>
+                      {donations.map((_, index) => {
+                        return (
+                          <div key={index}>
+                            <Field name={`donations[${index}].institution`} />
+                            <ErrorMessage
+                              name={`donations[${index}].institution`}
+                              component={TextError}
+                            />
+                            <Field name={`donations[${index}].percentage`} />
+                            <ErrorMessage
+                              name={`donations[${index}].percentage`}
+                              component={TextError}
+                            />
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  remove(index);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                console.log("clicked...");
+                                push({ institution: "", percentage: 0 });
+                              }}
+                            >
+                              Add More
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }}
+              </FieldArray>
+```
+
+### File Upload
+
+- step1 FormikContainer.js
+
+```
+const fileRef = useRef(null);
+const SUPPORTED_FORMATS = ["image/jpeg", "image/jpg", "image/png"];
+const initialValues={
+  file:''
+}
+const validationSchema=Yup.object({
+  file: Yup.mixed().nullable().required("Photo is must")
+    .test("FILE_FORMAT", "Unsported file format", (value) => {
+       return !value || (value && SUPPORTED_FORMATS.includes(value.type));
+    })
+    .test("FILE_SIZE", "Uploaded file size too big", (value) => {
+      return !value || (value && value.size <= 1024 * 1024);
+    })
+})
+
+<input
+  hidden
+  ref={fileRef}
+  type="file"
+  name="file"
+  onChange={(event) => {
+  formik.setFieldValue("file", event.target.files[0]);
+      }}
+/>
+{formik.errors.file && <p>{formik.errors.file}</p>}
+{!formik.errors.file && formik.values.file && <ImagePreview file={formik.values.file} />}
+<button
+  type="button"
+  onClick={() => {
+                fileRef.current.click();
+              }}
+>
+Upload Photo
+</button>
+
+```
+
+- step2 create component ImagePreview.js
+
+```
+import { useState } from "react";
+
+const ImagePreview = (props) => {
+  const { file } = props;
+  const [preview, setPreview] = useState(null);
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => {
+    setPreview(reader.result);
+  };
+
+  return (
+    <div>
+      {preview ? (
+        <img src={preview} height="200px" width="200px" alt=''/>
+      ) : (
+        "Loading.."
+      )}
+    </div>
+  );
+};
+
+export default ImagePreview;
 
 ```
